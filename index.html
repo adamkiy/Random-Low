@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Low-Diameter Clustering - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 0;
+            min-height: 700px;
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-right: 3px solid #e0e0e0;
+            overflow-y: auto;
+        }
+
+        .visualization-panel {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .control-section {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .control-section h3 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 6px;
+        }
+
+        .parameter-group {
+            margin-bottom: 15px;
+        }
+
+        .parameter-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #555;
+            font-size: 0.95em;
+        }
+
+        .speed-indicator {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            margin-left: 5px;
+        }
+
+        .parameter-group input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .parameter-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .parameter-group input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: none;
+        }
+
+        .parameter-value {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        canvas {
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: crosshair;
+        }
+
+        .stats-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .stats-panel h3 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.95em;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-weight: bold;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .stat-value {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .algorithm-info {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .current-step {
+            background: #fff3cd;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9em;
+        }
+
+        .legend-color {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid #333;
+        }
+
+        .geometric-distribution {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .geometric-distribution h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .probability-bar {
+            background: #e0e0e0;
+            height: 30px;
+            border-radius: 5px;
+            position: relative;
+            margin: 10px 0;
+        }
+
+        .probability-fill {
+            background: linear-gradient(90deg, #28a745, #ffc107);
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .formula-box {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .formula-box strong {
+            color: #667eea;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .controls-panel {
+                border-right: none;
+                border-bottom: 3px solid #e0e0e0;
+                max-height: none;
+            }
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+
+        .cluster-info-panel {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            max-height: 180px;
+            overflow-y: auto;
+            font-size: 0.9em;
+        }
+
+        .cluster-info-item {
+            padding: 6px;
+            margin: 4px 0;
+            border-radius: 5px;
+            border-left: 4px solid;
+            font-size: 0.9em;
+        }
+
+        .highlight {
+            animation: pulse 1s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Random Low-Diameter Clustering</h1>
+            <p>Interactive Algorithm Visualization</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Controls Panel -->
+            <div class="controls-panel">
+                <div class="control-section">
+                    <h3>⚙️ Parameters</h3>
+                    
+                    <div class="parameter-group">
+                        <label>
+                            α (Alpha) - Controls cluster sizes
+                            <span class="parameter-value" id="alphaValue">5</span>
+                        </label>
+                        <input type="range" id="alphaSlider" min="1" max="20" value="5" step="0.5">
+                        <small style="color: #666; display: block; margin-top: 4px; font-size: 0.8em;">
+                            Small α → Large clusters | Large α → Small clusters
+                        </small>
+                    </div>
+
+                    <div class="parameter-group">
+                        <label>
+                            Δ (Delta) - Max diameter constraint
+                            <span class="parameter-value" id="deltaValue">100</span>
+                        </label>
+                        <input type="range" id="deltaSlider" min="20" max="200" value="100" step="10">
+                    </div>
+
+                    <div class="parameter-group">
+                        <label>
+                            Number of Points
+                            <span class="parameter-value" id="numPointsValue">20</span>
+                        </label>
+                        <input type="range" id="numPointsSlider" min="5" max="50" value="20" step="1">
+                    </div>
+
+                    <div class="parameter-group">
+                        <label>
+                            Animation Speed
+                            <span class="parameter-value" id="speedValue">10x</span>
+                            <span class="speed-indicator">Fast</span>
+                        </label>
+                        <input type="range" id="speedSlider" min="1" max="20" value="10" step="1">
+                        <small style="color: #666; display: block; margin-top: 4px; font-size: 0.8em;">
+                            1x = Slow | 10x = Fast | 20x = Very Fast
+                        </small>
+                    </div>
+
+                    <div class="geometric-distribution">
+                        <h4>📊 Geometric Distribution</h4>
+                        <div style="font-size: 0.85em; margin-bottom: 8px;">
+                            R<sub>i</sub> ~ Geometric(α/Δ) = Geometric(<span id="probValue">0.05</span>)
+                        </div>
+                        <div style="font-size: 0.85em; color: #666;">
+                            E[R<sub>i</sub>] ≈ Δ/α = <span id="expectedRadius" style="color: #667eea; font-weight: bold;">20.0</span>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.85em;">
+                            Pr[R<sub>i</sub> > Δ/2] = <span id="probLargeRadius" style="color: #dc3545; font-weight: bold;">0.077</span>
+                        </div>
+                    </div>
+
+                    <div class="formula-box">
+                        <strong>Algorithm:</strong><br>
+                        For i = 1, 2, ..., n:<br>
+                        &nbsp;&nbsp;1. Draw R<sub>i</sub> ~ Geo(α/Δ)<br>
+                        &nbsp;&nbsp;2. C<sub>i</sub> = B(x<sub>i</sub>, R<sub>i</sub>) \ ⋃<sub>j&lt;i</sub> C<sub>j</sub>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>🎮 Controls</h3>
+                    <div class="button-group">
+                        <button class="btn-primary" id="generateBtn">🎲 Generate Random Points</button>
+                        <button class="btn-success" id="startBtn" disabled>▶️ Start Algorithm</button>
+                        <button class="btn-warning" id="stepBtn" disabled>⏭️ Next Step</button>
+                        <button class="btn-danger" id="resetBtn">🔄 Reset</button>
+                    </div>
+
+                    <div class="current-step" id="currentStep" style="margin-top: 15px; display: none;">
+                        Ready to start!
+                    </div>
+                    <div style="font-size: 0.8em; color: #666; margin-top: 8px; text-align: center; font-style: italic;">
+                        Watch carefully: Center selection is SLOW (6 pulses), ball growth is FAST!
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>📈 Statistics</h3>
+                    <div class="stats-panel">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Points:</span>
+                            <span class="stat-value" id="statTotalPoints">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Current Step:</span>
+                            <span class="stat-value" id="statCurrentStep">0</span>
+                        </div>
+                        <div class="stat-item" style="background: #e3f2fd; padding: 6px 8px; margin: 4px -8px; border-radius: 5px;">
+                            <span class="stat-label" style="font-size: 1em;">⚙️ Total Balls Created:</span>
+                            <span class="stat-value" id="statTotalBalls" style="font-size: 1em;">0</span>
+                        </div>
+                        <div class="stat-item" style="padding-left: 15px;">
+                            <span class="stat-label">✅ Non-Empty Clusters:</span>
+                            <span class="stat-value" id="statClusters">0</span>
+                        </div>
+                        <div class="stat-item" style="padding-left: 15px;">
+                            <span class="stat-label">⚠️ Empty Clusters:</span>
+                            <span class="stat-value" id="statEmptyClusters" style="color: #ff9800;">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Clustered Points:</span>
+                            <span class="stat-value" id="statClusteredPoints">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Max Diameter:</span>
+                            <span class="stat-value" id="statMaxDiameter">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Violations (>Δ):</span>
+                            <span class="stat-value" id="statViolations">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>🎨 Legend</h3>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #666;"></div>
+                            <span>Unclustered</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff0000;"></div>
+                            <span>Current Center</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(102, 126, 234, 0.3); border-style: dashed;"></div>
+                            <span>Current Ball</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(150, 150, 150, 0.15); border-style: dashed; border-color: #999;"></div>
+                            <span>Empty Cluster</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; padding: 8px; background: #fff3cd; border-radius: 5px; font-size: 0.85em;">
+                        <strong>💡 Why empty clusters?</strong><br>
+                        When we create ball B(x<sub>i</sub>, R<sub>i</sub>), all points inside may already belong to earlier clusters. 
+                        Then C<sub>i</sub> = ∅ (empty)!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization Panel -->
+            <div class="visualization-panel">
+                <div class="algorithm-info">
+                    <strong>How it works:</strong> The algorithm processes <strong>ALL n points</strong> sequentially. For each point x<sub>i</sub>, 
+                    it draws a random radius R<sub>i</sub> from a geometric distribution, creates a ball B(x<sub>i</sub>, R<sub>i</sub>), 
+                    and forms cluster C<sub>i</sub> by taking <strong>only unclaimed points</strong> in that ball.
+                    <br><br>
+                    <strong>⚠️ Important:</strong> We create <strong>n balls</strong> (one per point), but many clusters end up <strong>EMPTY</strong> 
+                    because their balls only contain points already claimed by earlier clusters! This is correct behavior.
+                    <br><br>
+                    <strong>Animation:</strong> Watch the two-phase process:
+                    <br>
+                    <span style="color: #ff0000; font-weight: bold;">Phase 1 (VERY SLOW):</span> Center selection with 6 pulsing red highlights - clearly shows which point is chosen (1.2 seconds at 1x speed)
+                    <br>
+                    <span style="color: #ff0000; font-weight: bold;">Phase 2 (VERY FAST):</span> Ball explodes outward from center to final radius R<sub>i</sub>
+                    <br>
+                    <span style="color: #999; font-weight: bold;">Gray ball = Empty cluster</span> (all points already claimed)
+                </div>
+
+                <canvas id="canvas" width="850" height="600"></canvas>
+
+                <div class="cluster-info-panel">
+                    <h4 style="color: #667eea; margin-bottom: 10px;">Cluster Details:</h4>
+                    <div id="clusterDetails">Click "Generate Random Points" to begin!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        const state = {
+            points: [],
+            clusters: [],
+            currentStep: 0,
+            isRunning: false,
+            alpha: 5,
+            delta: 100,
+            numPoints: 20,
+            speed: 10,
+            currentRadius: 0,
+            currentBall: null,
+            claimedPoints: new Set(),
+            animatingRadius: 0,
+            targetRadius: 0,
+            isAnimating: false
+        };
+
+        // Canvas setup
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const canvasWidth = 850;
+        const canvasHeight = 600;
+
+        // Color palette for clusters
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+            '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788',
+            '#FF9FF3', '#54A0FF', '#48DBFB', '#FF6348', '#1DD1A1',
+            '#FFA502', '#FF6348', '#FF4757', '#5F27CD', '#00D2D3'
+        ];
+
+        // Initialize
+        document.getElementById('generateBtn').addEventListener('click', generatePoints);
+        document.getElementById('startBtn').addEventListener('click', startAlgorithm);
+        document.getElementById('stepBtn').addEventListener('click', nextStep);
+        document.getElementById('resetBtn').addEventListener('click', reset);
+
+        // Parameter sliders
+        document.getElementById('alphaSlider').addEventListener('input', (e) => {
+            state.alpha = parseFloat(e.target.value);
+            document.getElementById('alphaValue').textContent = state.alpha.toFixed(1);
+            updateDistributionInfo();
+        });
+
+        document.getElementById('deltaSlider').addEventListener('input', (e) => {
+            state.delta = parseInt(e.target.value);
+            document.getElementById('deltaValue').textContent = state.delta;
+            updateDistributionInfo();
+        });
+
+        document.getElementById('numPointsSlider').addEventListener('input', (e) => {
+            state.numPoints = parseInt(e.target.value);
+            document.getElementById('numPointsValue').textContent = state.numPoints;
+        });
+
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            state.speed = parseInt(e.target.value);
+            document.getElementById('speedValue').textContent = state.speed + 'x';
+            
+            const speedIndicator = document.querySelector('.speed-indicator');
+            if (state.speed <= 5) {
+                speedIndicator.textContent = 'Slow';
+                speedIndicator.style.background = '#ffc107';
+            } else if (state.speed <= 12) {
+                speedIndicator.textContent = 'Fast';
+                speedIndicator.style.background = '#28a745';
+            } else {
+                speedIndicator.textContent = 'Very Fast';
+                speedIndicator.style.background = '#dc3545';
+            }
+        });
+
+        function updateDistributionInfo() {
+            const p = state.alpha / state.delta;
+            const expectedRadius = (state.delta - state.alpha) / state.alpha;
+            const probLargeRadius = Math.pow(1 - p, state.delta / 2);
+
+            document.getElementById('probValue').textContent = p.toFixed(4);
+            document.getElementById('expectedRadius').textContent = expectedRadius.toFixed(1);
+            document.getElementById('probLargeRadius').textContent = probLargeRadius.toFixed(4);
+        }
+
+        function generatePoints() {
+            reset();
+            state.points = [];
+            
+            // Generate random points
+            for (let i = 0; i < state.numPoints; i++) {
+                state.points.push({
+                    x: Math.random() * (canvasWidth - 100) + 50,
+                    y: Math.random() * (canvasHeight - 100) + 50,
+                    id: i,
+                    cluster: -1 // -1 means unclustered
+                });
+            }
+
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('currentStep').style.display = 'block';
+            document.getElementById('currentStep').textContent = 'Ready to start! Press "Start Algorithm" or "Next Step"';
+            
+            updateStats();
+            draw();
+        }
+
+        function startAlgorithm() {
+            if (state.isRunning || state.isAnimating) return;
+            state.isRunning = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = true;
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('alphaSlider').disabled = true;
+            document.getElementById('deltaSlider').disabled = true;
+
+            runAlgorithm();
+        }
+
+        function runAlgorithm() {
+            if (state.currentStep < state.points.length && !state.isAnimating) {
+                nextStep();
+                // Delay accounts for: center selection (SLOW) + ball growth (fast) + pause
+                const delay = (1200 / state.speed) + (100 / state.speed); // Longer for slower center selection
+                setTimeout(runAlgorithm, delay);
+            } else if (state.isAnimating) {
+                // Wait for animation to complete
+                setTimeout(runAlgorithm, 20);
+            } else {
+                state.isRunning = false;
+                document.getElementById('currentStep').textContent = '✅ Algorithm Complete!';
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('alphaSlider').disabled = false;
+                document.getElementById('deltaSlider').disabled = false;
+            }
+        }
+
+        function nextStep() {
+            if (state.currentStep >= state.points.length) {
+                document.getElementById('currentStep').textContent = '✅ Algorithm Complete!';
+                document.getElementById('stepBtn').disabled = true;
+                return;
+            }
+
+            if (state.isAnimating) {
+                // Don't allow stepping while animation is in progress
+                return;
+            }
+
+            // Disable step button during animation
+            document.getElementById('stepBtn').disabled = true;
+
+            const i = state.currentStep;
+            const center = state.points[i];
+
+            // PHASE 1: Show center selection (SLOW - pause to highlight)
+            highlightCenterSelection(center, i, () => {
+                // PHASE 2: Draw radius and grow ball (VERY FAST)
+                const radius = drawGeometric(state.alpha / state.delta);
+                state.currentRadius = radius;
+                state.targetRadius = radius;
+                state.animatingRadius = 0;
+                state.isAnimating = true;
+
+                // Start ball growth animation (MUCH FASTER)
+                animateBallGrowth(center, radius, () => {
+                    // PHASE 3: Finalize cluster
+                    finalizeCluster(i, center, radius);
+                    
+                    // Re-enable step button if not running automatically
+                    if (!state.isRunning && state.currentStep < state.points.length) {
+                        document.getElementById('stepBtn').disabled = false;
+                    }
+                });
+            });
+        }
+
+        function highlightCenterSelection(center, index, onComplete) {
+            // Show which point is being selected as center - MUCH SLOWER
+            const highlightDuration = 1200 / state.speed; // 3x slower than before!
+            
+            state.isAnimating = true; // Mark as animating during selection
+            
+            document.getElementById('currentStep').textContent = 
+                `🎯 Selecting Center: Point ${index + 1} at (${Math.round(center.x)}, ${Math.round(center.y)})\n` +
+                `Drawing radius from Geometric(${(state.alpha/state.delta).toFixed(4)})...`;
+            
+            // Mark this point as selected with animation
+            state.currentBall = { center, radius: 0, isSelecting: true };
+            
+            let pulseCount = 0;
+            const pulses = 6; // More pulses for better visibility
+            const pulseInterval = setInterval(() => {
+                pulseCount++;
+                draw();
+                if (pulseCount >= pulses) {
+                    clearInterval(pulseInterval);
+                    state.currentBall.isSelecting = false;
+                    onComplete();
+                }
+            }, highlightDuration / pulses);
+        }
+
+        function animateBallGrowth(center, targetRadius, onComplete) {
+            const animationDuration = 8 / state.speed; // MUCH FASTER: less than 1ms at 10x speed!
+            const startTime = Date.now();
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / animationDuration, 1);
+                
+                // Very fast linear growth
+                state.animatingRadius = targetRadius * progress;
+                state.currentBall = { center, radius: state.animatingRadius, isGrowing: true };
+                
+                draw();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    state.isAnimating = false;
+                    state.animatingRadius = targetRadius;
+                    state.currentBall = { center, radius: targetRadius, isGrowing: false };
+                    onComplete();
+                }
+            }
+            
+            animate();
+        }
+
+        function finalizeCluster(i, center, radius) {
+            // Find points in ball that haven't been claimed
+            const pointsInBall = [];
+            for (const point of state.points) {
+                const dist = distance(center, point);
+                if (dist <= radius && !state.claimedPoints.has(point.id)) {
+                    pointsInBall.push(point);
+                    state.claimedPoints.add(point.id);
+                    point.cluster = state.clusters.length;
+                }
+            }
+
+            // Create cluster
+            const cluster = {
+                id: state.clusters.length,
+                center: center,
+                radius: radius,
+                points: pointsInBall,
+                color: colors[state.clusters.length % colors.length],
+                isEmpty: pointsInBall.length === 0
+            };
+
+            state.clusters.push(cluster);
+
+            // Update UI with clear explanation
+            let stepText = `Step ${i + 1}/${state.points.length}: Processing x${i + 1} = (${Math.round(center.x)}, ${Math.round(center.y)})\n` +
+                          `Radius R${i + 1} = ${radius.toFixed(1)}\n`;
+            
+            if (pointsInBall.length === 0) {
+                stepText += `❌ EMPTY CLUSTER! All ${countPointsInBall(center, radius)} points in ball were already claimed by earlier clusters.`;
+            } else {
+                stepText += `✅ Claimed ${pointsInBall.length} new points → Cluster ${state.clusters.filter(c => !c.isEmpty).length}`;
+            }
+            
+            document.getElementById('currentStep').textContent = stepText;
+
+            state.currentStep++;
+            updateStats();
+            updateClusterDetails();
+            draw();
+        }
+        
+        function countPointsInBall(center, radius) {
+            let count = 0;
+            for (const point of state.points) {
+                if (distance(center, point) <= radius) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        function drawGeometric(p) {
+            // Draw from geometric distribution
+            // Returns number of failures before first success
+            let k = 0;
+            while (Math.random() > p) {
+                k++;
+            }
+            return k;
+        }
+
+        function distance(p1, p2) {
+            return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+        }
+
+        function calculateDiameter(cluster) {
+            if (cluster.points.length <= 1) return 0;
+            
+            let maxDist = 0;
+            for (let i = 0; i < cluster.points.length; i++) {
+                for (let j = i + 1; j < cluster.points.length; j++) {
+                    const dist = distance(cluster.points[i], cluster.points[j]);
+                    maxDist = Math.max(maxDist, dist);
+                }
+            }
+            return maxDist;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            // Draw all completed clusters - INCLUDING EMPTY ONES
+            for (const cluster of state.clusters) {
+                if (cluster.isEmpty) {
+                    // Draw EMPTY cluster as gray transparent ball
+                    ctx.fillStyle = 'rgba(150, 150, 150, 0.08)'; // Very light gray
+                    ctx.beginPath();
+                    ctx.arc(cluster.center.x, cluster.center.y, cluster.radius, 0, 2 * Math.PI);
+                    ctx.fill();
+
+                    // Draw gray dashed border
+                    ctx.strokeStyle = 'rgba(150, 150, 150, 0.3)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([3, 3]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Add "EMPTY" label
+                    ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+                    ctx.font = 'bold 11px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('EMPTY', cluster.center.x, cluster.center.y + 3);
+                } else {
+                    // Draw NON-EMPTY cluster with color
+                    ctx.fillStyle = cluster.color + '40'; // 40 is alpha for transparency
+                    ctx.beginPath();
+                    ctx.arc(cluster.center.x, cluster.center.y, cluster.radius, 0, 2 * Math.PI);
+                    ctx.fill();
+
+                    // Draw circle border
+                    ctx.strokeStyle = cluster.color;
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+
+            // Draw current ball
+            if (state.currentBall) {
+                if (state.currentBall.isSelecting) {
+                    // PHASE 1: Pulsing center selection (SLOW) - makes it very visible
+                    const pulse = Math.sin(Date.now() / 100) * 0.5 + 0.5; // Pulsing effect
+                    
+                    // Large pulsing circle around center
+                    ctx.strokeStyle = `rgba(255, 0, 0, ${0.8 - pulse * 0.4})`;
+                    ctx.lineWidth = 4 + pulse * 4;
+                    ctx.beginPath();
+                    ctx.arc(state.currentBall.center.x, state.currentBall.center.y, 
+                           15 + pulse * 10, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    
+                    // Inner pulsing glow
+                    ctx.fillStyle = `rgba(255, 0, 0, ${0.3 + pulse * 0.3})`;
+                    ctx.beginPath();
+                    ctx.arc(state.currentBall.center.x, state.currentBall.center.y, 
+                           12, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Selection text
+                    ctx.fillStyle = '#ff0000';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('SELECTED', state.currentBall.center.x, 
+                                state.currentBall.center.y - 30);
+                    
+                } else if (state.currentBall.isGrowing) {
+                    // PHASE 2: Fast growing ball
+                    ctx.strokeStyle = 'rgba(255, 0, 0, 0.9)';
+                    ctx.fillStyle = 'rgba(255, 0, 0, 0.15)';
+                    ctx.lineWidth = 4;
+                    ctx.setLineDash([8, 4]);
+                    ctx.beginPath();
+                    ctx.arc(state.currentBall.center.x, state.currentBall.center.y, 
+                           state.currentBall.radius, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Draw radius line (very visible during growth)
+                    if (state.currentBall.radius > 5) {
+                        ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(state.currentBall.center.x, state.currentBall.center.y);
+                        ctx.lineTo(state.currentBall.center.x + state.currentBall.radius, 
+                                  state.currentBall.center.y);
+                        ctx.stroke();
+                        
+                        // Radius value
+                        ctx.fillStyle = '#ff0000';
+                        ctx.font = 'bold 16px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(`R = ${state.currentBall.radius.toFixed(1)}`, 
+                            state.currentBall.center.x + state.currentBall.radius / 2, 
+                            state.currentBall.center.y - 8);
+                    }
+                } else if (state.isAnimating) {
+                    // Still animating but not in specific phase
+                    ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([10, 5]);
+                    ctx.beginPath();
+                    ctx.arc(state.currentBall.center.x, state.currentBall.center.y, 
+                           state.currentBall.radius, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                } else if (state.currentStep < state.points.length) {
+                    // Final ball (not animating)
+                    ctx.strokeStyle = 'rgba(255, 0, 0, 0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([10, 5]);
+                    ctx.beginPath();
+                    ctx.arc(state.currentBall.center.x, state.currentBall.center.y, 
+                           state.currentBall.radius, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+
+            // Draw all points
+            for (const point of state.points) {
+                // Determine point color
+                let fillColor = '#666'; // Unclustered
+                if (point.cluster >= 0) {
+                    fillColor = state.clusters[point.cluster].color;
+                }
+
+                // Draw point
+                ctx.fillStyle = fillColor;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Draw border
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw point ID
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(point.id + 1, point.x, point.y - 12);
+            }
+
+            // Extra highlight for current center being processed
+            if (state.currentStep > 0 && state.currentStep <= state.points.length) {
+                const currentCenter = state.points[state.currentStep - 1];
+                
+                // Only show if not in selection phase (which has its own highlight)
+                if (!state.currentBall || !state.currentBall.isSelecting) {
+                    ctx.strokeStyle = '#ff0000';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(currentCenter.x, currentCenter.y, 9, 0, 2 * Math.PI);
+                    ctx.stroke();
+                }
+            }
+
+            // Draw scale reference (Δ)
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(20, canvasHeight - 20);
+            ctx.lineTo(20 + state.delta, canvasHeight - 20);
+            ctx.stroke();
+
+            // Draw tick marks
+            ctx.beginPath();
+            ctx.moveTo(20, canvasHeight - 25);
+            ctx.lineTo(20, canvasHeight - 15);
+            ctx.moveTo(20 + state.delta, canvasHeight - 25);
+            ctx.lineTo(20 + state.delta, canvasHeight - 15);
+            ctx.stroke();
+
+            ctx.fillStyle = '#667eea';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Δ = ${state.delta}`, 20 + state.delta / 2, canvasHeight - 30);
+        }
+
+        function updateStats() {
+            document.getElementById('statTotalPoints').textContent = state.points.length;
+            document.getElementById('statCurrentStep').textContent = `${state.currentStep} / ${state.points.length}`;
+            
+            // Total balls = number of clusters (including empty)
+            document.getElementById('statTotalBalls').textContent = state.clusters.length;
+            
+            const nonEmptyClusters = state.clusters.filter(c => !c.isEmpty).length;
+            const emptyClusters = state.clusters.filter(c => c.isEmpty).length;
+            
+            document.getElementById('statClusters').textContent = nonEmptyClusters;
+            document.getElementById('statEmptyClusters').textContent = emptyClusters;
+            document.getElementById('statClusteredPoints').textContent = state.claimedPoints.size;
+
+            // Calculate max diameter and violations
+            let maxDiameter = 0;
+            let violations = 0;
+            for (const cluster of state.clusters) {
+                if (!cluster.isEmpty) {
+                    const diameter = calculateDiameter(cluster);
+                    maxDiameter = Math.max(maxDiameter, diameter);
+                    if (diameter > state.delta) {
+                        violations++;
+                    }
+                }
+            }
+
+            document.getElementById('statMaxDiameter').textContent = maxDiameter.toFixed(1);
+            document.getElementById('statViolations').textContent = violations;
+            
+            // Color violations in red if any
+            const violationsElement = document.getElementById('statViolations');
+            violationsElement.style.color = violations > 0 ? '#dc3545' : '#667eea';
+        }
+
+        function updateClusterDetails() {
+            const detailsDiv = document.getElementById('clusterDetails');
+            let html = '';
+
+            for (const cluster of state.clusters) {
+                const diameter = calculateDiameter(cluster);
+                const violates = diameter > state.delta;
+                
+                if (cluster.isEmpty) {
+                    // Empty cluster display
+                    html += `<div class="cluster-info-item" style="border-color: #999; background: #f5f5f5; opacity: 0.7;">
+                        <strong style="color: #666;">Ball ${cluster.id + 1}</strong> 
+                        (Center: Point ${cluster.center.id + 1})
+                        <span style="color: #ff9800; font-weight: bold;"> ⚠️ EMPTY</span>
+                        <br>
+                        Radius: ${cluster.radius.toFixed(1)} | 
+                        <span style="color: #666;">All points in ball already claimed</span>
+                    </div>`;
+                } else {
+                    // Non-empty cluster display
+                    html += `<div class="cluster-info-item" style="border-color: ${cluster.color}; background: ${cluster.color}20;">
+                        <strong>Cluster ${state.clusters.filter((c, idx) => !c.isEmpty && idx <= cluster.id).length}</strong> 
+                        (Ball ${cluster.id + 1}, Center: Point ${cluster.center.id + 1})
+                        <br>
+                        Radius: ${cluster.radius.toFixed(1)} | 
+                        Points: ${cluster.points.length} | 
+                        Diameter: ${diameter.toFixed(1)}
+                        ${violates ? ' <span style="color: #dc3545;">⚠️ VIOLATION!</span>' : ''}
+                        <br>
+                        <small>Points: ${cluster.points.map(p => p.id + 1).join(', ')}</small>
+                    </div>`;
+                }
+            }
+
+            if (html === '') {
+                html = '<div style="color: #666;">No clusters formed yet.</div>';
+            }
+
+            detailsDiv.innerHTML = html;
+        }
+
+        function reset() {
+            state.currentStep = 0;
+            state.clusters = [];
+            state.isRunning = false;
+            state.claimedPoints.clear();
+            state.currentBall = null;
+            state.isAnimating = false;
+            state.animatingRadius = 0;
+            state.targetRadius = 0;
+
+            // Reset all points to unclustered
+            for (const point of state.points) {
+                point.cluster = -1;
+            }
+
+            document.getElementById('startBtn').disabled = state.points.length === 0;
+            document.getElementById('stepBtn').disabled = state.points.length === 0;
+            document.getElementById('generateBtn').disabled = false;
+            document.getElementById('currentStep').textContent = 'Ready to start!';
+
+            updateStats();
+            updateClusterDetails();
+            draw();
+        }
+
+        // Initialize display
+        updateDistributionInfo();
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        ctx.fillStyle = '#999';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Click "Generate Random Points" to begin!', canvasWidth / 2, canvasHeight / 2);
+    </script>
+</body>
+</html>
